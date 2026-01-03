@@ -13,9 +13,9 @@ impl Chip8Sys {
         if self.delay_timer > 0 {
             // Only decrement delay time if it's been 6 cycles to match original slow clock of
             // chip-8
-            //if self.dt_cycle_ct % 6 == 0 {
-            self.delay_timer -= 1;
-            //}
+            if self.dt_cycle_ct % 6 == 0 {
+                self.delay_timer -= 1;
+            }
             self.dt_cycle_ct += 1;
         }
         if self.sound_timer > 0 {
