@@ -215,7 +215,7 @@ They include but are not limited to:
 ## Running This Emulator
 
 Find the code repository of this project at:
-[Licalsinj CHIP-8 Repository](https://github.com/licalsinj/chip-8)
+[Nebulous Code CHIP-8 Repository](https://github.com/nebulous-code/chip-8)
 
 ### TODO: Make this section accurate
 
@@ -238,4 +238,4 @@ Download a local version to run on your own machine here:
 
 This CHIP-8 Emulator is created by Nicholas Licalsi.
 
-Find more of my projects at: [github.com/licalsinj](https://github.com/licalsinj)
+Find more of my projects at: [github.com/nebulous-code](https://github.com/nebulous-code)
