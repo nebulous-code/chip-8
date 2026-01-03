@@ -22,7 +22,7 @@ the emulator a button is provided.
 
 Have fun and I hope you enjoy,
 
-[Nicholas Licalsi](https://github.com/licalsinj)
+[Nicholas Licalsi](https://github.com/nebulous-code)
 
 ## Configuring This CHIP-8
 
