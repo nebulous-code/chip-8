@@ -7,6 +7,47 @@ use crate::chip8error::Chip8Error;
 const EMPTY_MEMORY: [u8; 4096] = [0; 4096];
 const EMPTY_REGISTER: [u8; 16] = [0; 16];
 const EMPTY_STACK: [u16; 16] = [0; 16];
+/// This constant defines the start address for program memory.
+const PROGRAM_START: usize = 0x200;
+
+/// This constant defines the Chip-8 display width in pixels.
+pub const DISPLAY_WIDTH: usize = 64;
+/// This constant defines the Chip-8 display height in pixels.
+pub const DISPLAY_HEIGHT: usize = 32;
+/// This constant defines the number of pixels in the Chip-8 display.
+pub const DISPLAY_PIXELS: usize = DISPLAY_WIDTH * DISPLAY_HEIGHT;
+/// This constant defines the packed framebuffer length in bytes.
+pub const FRAMEBUFFER_PACKED_LEN: usize = DISPLAY_PIXELS / 8;
+
+/// This type represents the 16-key Chip-8 keypad as a bitmask.
+pub type Chip8KeyMask = u16;
+
+/// This struct stores the Chip-8 quirk settings used by the CPU.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Chip8Quirks {
+    /// This field controls whether FX55 and FX65 increment the index register.
+    pub increment_i_on_store: bool,
+    /// This field controls whether VF resets on logical instructions.
+    pub reset_vf_on_logic: bool,
+    /// This field controls whether sprites wrap around the screen edges.
+    pub wrap_draw: bool,
+    /// This field controls whether shift instructions modify VX in place.
+    pub shift_uses_vx: bool,
+}
+
+impl Default for Chip8Quirks {
+    /// This function returns the default Chip-8 quirk settings.
+    /// Arguments: none.
+    /// Returns: The default quirk settings.
+    fn default() -> Self {
+        Self {
+            increment_i_on_store: true,
+            reset_vf_on_logic: true,
+            wrap_draw: false,
+            shift_uses_vx: false,
+        }
+    }
+}
 
 // This is the built in Chip-8 font that Roms expect to access
 const FONT: [u8; 80] = [
@@ -70,7 +111,7 @@ impl Chip8Sys {
             delay_timer: 0,
             dt_cycle_ct: 0,
             sound_timer: 0,
-            program_counter: 0x200, // initialize PC to start reading at 0x200
+            program_counter: PROGRAM_START as u16, // initialize PC to start reading at 0x200
             stack_pointer: 0,
             stack: EMPTY_STACK,
             frame_buffer: [0x00; 256],
@@ -97,7 +138,7 @@ impl Chip8Sys {
             delay_timer: 0,
             dt_cycle_ct: 0,
             sound_timer: 0,
-            program_counter: 0x200, // initialize PC to start reading at 0x200
+            program_counter: PROGRAM_START as u16, // initialize PC to start reading at 0x200
             stack_pointer: 0,
             stack: EMPTY_STACK,
             frame_buffer: [0x00; 256],
@@ -118,6 +159,149 @@ impl Chip8Sys {
 }
 
 impl Chip8Sys {
+    /// This function builds a new Chip-8 instance from a quirk configuration.
+    /// Arguments:
+    /// - quirks: The quirk configuration to apply.
+    /// Returns: A new Chip-8 system instance.
+    pub fn new_with_quirks(quirks: Chip8Quirks) -> Chip8Sys {
+        Chip8Sys::new_set_quirks(
+            quirks.increment_i_on_store,
+            quirks.reset_vf_on_logic,
+            quirks.wrap_draw,
+            quirks.shift_uses_vx,
+        )
+    }
+
+    /// This function returns the active quirk configuration for the Chip-8 instance.
+    /// Arguments: none.
+    /// Returns: The active quirk configuration.
+    pub fn quirks(&self) -> Chip8Quirks {
+        Chip8Quirks {
+            increment_i_on_store: self.is_inc_index(),
+            reset_vf_on_logic: self.is_register_f_reset(),
+            wrap_draw: self.is_wrap_draw(),
+            shift_uses_vx: self.is_mod_vx_in_place(),
+        }
+    }
+
+    /// This function resets the Chip-8 system while preserving its quirks.
+    /// Arguments: none.
+    /// Returns: The updated Chip-8 system.
+    pub fn reset(&mut self) -> &mut Self {
+        let quirks = self.quirks();
+        *self = Chip8Sys::new_with_quirks(quirks);
+        self
+    }
+
+    /// This function loads ROM bytes into memory starting at 0x200.
+    /// Arguments:
+    /// - rom_bytes: The ROM byte slice to load into memory.
+    /// Returns: The updated Chip-8 system.
+    pub fn load_rom_bytes(&mut self, rom_bytes: &[u8]) -> &mut Self {
+        let program_len = self.memory.len().saturating_sub(PROGRAM_START);
+        /*
+        println!(
+            "Game memory length: {}, {:X}",
+            self.memory.len(),
+            self.memory.len()
+        );
+        // */
+        // Manually prints the rom instructions to the screen
+        // println!("rom to bytes:");
+        for index in 0..program_len {
+            let value = rom_bytes.get(index).copied().unwrap_or(0);
+            /*
+            // Manually prints the rom instructions to the screen
+            print!("{:02X} ", value);
+            if (index + 1) % 16 == 0 {
+                println!("");
+            }
+            // prints what is being loaded into memory
+            println!(
+                "{:02x}: load {:02X} in memory location {:02X}",
+                index,
+                value,
+                PROGRAM_START + index
+            );
+            // */
+            self.memory[PROGRAM_START + index] = value;
+        }
+        self
+    }
+
+    /// This function sets the keypad state from a 16-bit mask.
+    /// Arguments:
+    /// - mask: A bitmask where bit N indicates whether key N is pressed.
+    /// Returns: The updated Chip-8 system.
+    pub fn set_keys_mask(&mut self, mask: Chip8KeyMask) -> &mut Self {
+        for index in 0..self.keys.len() {
+            let bit = 1u16 << index;
+            self.keys[index] = (mask & bit) != 0;
+        }
+        self
+    }
+
+    /// This function returns the current keypad state as a bitmask.
+    /// Arguments: none.
+    /// Returns: The current keypad bitmask.
+    pub fn keys_mask(&self) -> Chip8KeyMask {
+        let mut mask = 0u16;
+        for (index, pressed) in self.keys.iter().enumerate() {
+            if *pressed {
+                mask |= 1u16 << index;
+            }
+        }
+        mask
+    }
+
+    /// This function replaces the keypad state with a provided array.
+    /// Arguments:
+    /// - keys: The new key state array.
+    /// Returns: The updated Chip-8 system.
+    pub fn set_keys(&mut self, keys: [bool; 16]) -> &mut Self {
+        self.keys = keys;
+        self
+    }
+
+    /// This function returns the packed framebuffer buffer.
+    /// Arguments: none.
+    /// Returns: The packed framebuffer buffer.
+    pub fn framebuffer_packed(&self) -> &[u8] {
+        &self.frame_buffer
+    }
+
+    /// This function runs a number of CPU cycles.
+    /// Arguments:
+    /// - cycles: The number of cycles to execute.
+    /// Returns: A result indicating whether execution succeeded.
+    pub fn tick(&mut self, cycles: u32) -> Result<(), Chip8Error> {
+        for _ in 0..cycles {
+            self.run()?;
+        }
+        Ok(())
+    }
+
+    /// This function returns the current delay timer value.
+    /// Arguments: none.
+    /// Returns: The delay timer value.
+    pub fn delay_timer(&self) -> u8 {
+        self.delay_timer
+    }
+
+    /// This function returns the current sound timer value.
+    /// Arguments: none.
+    /// Returns: The sound timer value.
+    pub fn sound_timer(&self) -> u8 {
+        self.sound_timer
+    }
+
+    /// This function reports whether the sound timer is active.
+    /// Arguments: none.
+    /// Returns: True when sound is active, otherwise false.
+    pub fn is_sound_playing(&self) -> bool {
+        self.is_playing_sound
+    }
+
     pub fn check_waiting(&mut self) -> bool {
         match self.wait_for_key_press {
             Some(r) => match r {
@@ -176,40 +360,10 @@ impl Chip8Sys {
         // let path = env::current_dir().unwrap();
         // println!("Path is: {}", path.display());
         let mut file = File::open(file_path).expect("should have been able to open the file");
-        let mut rom = [0; 0x1000];
+        let mut rom = vec![0; self.memory.len().saturating_sub(PROGRAM_START)];
         file.read(&mut rom[..])
             .expect("Should have been able to read the rom file");
-        /*
-        println!(
-            "Game memory length: {}, {:X}",
-            game.memory.len(),
-            game.memory.len()
-        );
-        // */
-        // Manually prints the rom instructions to the screen
-        // println!("rom to bytes:");
-        for (i, byte) in rom.iter().enumerate() {
-            /*
-            // Manually prints the rom instructions to the screen
-            print!("{:02X} ", byte);
-            if (i + 1) % 16 == 0 {
-                println!("");
-            }
-            // prints what i'm loading into where in memory
-            println!(
-                "{:02x}: load {:02X} in memory location {:02X}",
-                i,
-                byte,
-                0x200 + i
-            );
-            // */
-            if i + 0x200 > self.memory.len() - 1 {
-                // println!("Rom to long reading stopped");
-                break;
-            }
-            self.memory[0x200 + i] = byte.to_owned();
-        }
-        self
+        self.load_rom_bytes(&rom)
     }
 }
 
