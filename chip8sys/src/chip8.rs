@@ -22,6 +22,15 @@ pub const FRAMEBUFFER_PACKED_LEN: usize = DISPLAY_PIXELS / 8;
 /// This type represents the 16-key Chip-8 keypad as a bitmask.
 pub type Chip8KeyMask = u16;
 
+/// This enum defines how the delay and sound timers are updated.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TimerMode {
+    /// This mode decrements timers inside each CPU cycle.
+    Cycle,
+    /// This mode allows an external caller to drive timers.
+    External,
+}
+
 /// This struct stores the Chip-8 quirk settings used by the CPU.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Chip8Quirks {
@@ -86,6 +95,8 @@ pub struct Chip8Sys {
     pub keys: [bool; 16], // represents the 16 keys of Chip-8. true = pressed
     wait_for_key_press: Option<u8>, // for instruction 0xFXA0
     pub is_playing_sound: bool,
+    // controls whether timers are updated internally or externally
+    timer_mode: TimerMode,
     // handles if FX55 & FX65 increment I index register
     is_inc_index: bool,
     // quirk that resets reg[0xF] to 0 when AND, OR, and XOR are set (0x8XY1-3)
@@ -118,6 +129,7 @@ impl Chip8Sys {
             keys: [false; 16],
             wait_for_key_press: None,
             is_playing_sound: false,
+            timer_mode: TimerMode::Cycle,
             is_inc_index,
             is_register_f_reset,
             is_wrap_draw,
@@ -145,6 +157,7 @@ impl Chip8Sys {
             keys: [false; 16],
             wait_for_key_press: None,
             is_playing_sound: false,
+            timer_mode: TimerMode::Cycle,
             is_inc_index: true,
             is_register_f_reset: true,
             is_wrap_draw: false,
@@ -189,7 +202,44 @@ impl Chip8Sys {
     /// Returns: The updated Chip-8 system.
     pub fn reset(&mut self) -> &mut Self {
         let quirks = self.quirks();
+        let timer_mode = self.timer_mode;
         *self = Chip8Sys::new_with_quirks(quirks);
+        self.timer_mode = timer_mode;
+        self
+    }
+
+    /// This function returns the current timer update mode.
+    /// Arguments: none.
+    /// Returns: The current timer update mode.
+    pub fn timer_mode(&self) -> TimerMode {
+        self.timer_mode
+    }
+
+    /// This function sets the timer update mode.
+    /// Arguments:
+    /// - mode: The desired timer update mode.
+    /// Returns: The updated Chip-8 system.
+    pub fn set_timer_mode(&mut self, mode: TimerMode) -> &mut Self {
+        self.timer_mode = mode;
+        self
+    }
+
+    /// This function decrements delay and sound timers by a number of ticks.
+    /// Arguments:
+    /// - ticks: The number of 60Hz timer ticks to apply.
+    /// Returns: The updated Chip-8 system.
+    pub fn tick_timers(&mut self, ticks: u32) -> &mut Self {
+        for _ in 0..ticks {
+            if self.delay_timer > 0 {
+                self.delay_timer -= 1;
+            }
+            if self.sound_timer > 0 {
+                self.sound_timer -= 1;
+                if self.sound_timer == 0 {
+                    self.is_playing_sound = false;
+                }
+            }
+        }
         self
     }
 

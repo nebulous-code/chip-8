@@ -1,4 +1,4 @@
-use crate::chip8::Chip8Sys;
+use crate::chip8::{Chip8Sys, TimerMode};
 use crate::chip8error::Chip8Error;
 use getrandom;
 
@@ -9,19 +9,21 @@ impl Chip8Sys {
         if self.check_waiting() {
             return Ok(());
         }
-        // Delay timer
-        if self.delay_timer > 0 {
+        // Delay and sound timers
+        if self.timer_mode() == TimerMode::Cycle {
             // Only decrement delay time if it's been 6 cycles to match original slow clock of
             // chip-8
-            if self.dt_cycle_ct % 6 == 0 {
-                self.delay_timer -= 1;
+            if self.delay_timer > 0 {
+                if self.dt_cycle_ct % 6 == 0 {
+                    self.delay_timer -= 1;
+                }
+                self.dt_cycle_ct += 1;
             }
-            self.dt_cycle_ct += 1;
-        }
-        if self.sound_timer > 0 {
-            self.sound_timer -= 1;
-            if self.sound_timer == 0 {
-                self.is_playing_sound = false;
+            if self.sound_timer > 0 {
+                self.sound_timer -= 1;
+                if self.sound_timer == 0 {
+                    self.is_playing_sound = false;
+                }
             }
         }
         // fetch section
