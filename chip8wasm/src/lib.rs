@@ -113,6 +113,14 @@ impl Chip8Wasm {
         self.emulator.framebuffer_packed().to_vec()
     }
 
+    /// This function returns the current program counter address.
+    /// Arguments: none.
+    /// Returns: The program counter value.
+    #[wasm_bindgen(js_name = "programCounter")]
+    pub fn program_counter(&self) -> u16 {
+        self.emulator.program_counter
+    }
+
     /// This function returns the current delay timer value.
     /// Arguments: none.
     /// Returns: The delay timer value.
