@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
     "chip8sys",
+    "chip8wasm",
 #   "chip8gui",
 #    "chip8eframe"
 ]
@@ -209,4 +210,3 @@ zero_sized_map_values = "warn"
 
 manual_range_contains = "allow"       # this is better on 'allow'
 map_unwrap_or = "allow"               # this is better on 'allow'
-
