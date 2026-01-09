@@ -121,6 +121,19 @@ impl Chip8Wasm {
         self.emulator.program_counter
     }
 
+    /// This function returns the current instruction word at the program counter.
+    /// Arguments: none.
+    /// Returns: The 16-bit instruction word.
+    #[wasm_bindgen(js_name = "currentInstruction")]
+    pub fn current_instruction(&self) -> u16 {
+        let pc = self.emulator.program_counter as usize;
+        let memory = &self.emulator.memory;
+        if pc + 1 >= memory.len() {
+            return 0;
+        }
+        ((memory[pc] as u16) << 8) | memory[pc + 1] as u16
+    }
+
     /// This function returns the current delay timer value.
     /// Arguments: none.
     /// Returns: The delay timer value.
