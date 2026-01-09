@@ -7,7 +7,9 @@
 
 use wasm_bindgen::prelude::*;
 
-use chip8sys::chip8::{Chip8Sys, DISPLAY_HEIGHT, DISPLAY_PIXELS, DISPLAY_WIDTH, TimerMode};
+use chip8sys::chip8::{
+    Chip8Quirks, Chip8Sys, DISPLAY_HEIGHT, DISPLAY_PIXELS, DISPLAY_WIDTH, TimerMode,
+};
 use chip8sys::chip8error::Chip8Error;
 
 /// This struct wraps the Chip-8 emulator for JavaScript callers.
@@ -52,6 +54,29 @@ impl Chip8Wasm {
     #[wasm_bindgen(js_name = "setKeys")]
     pub fn set_keys(&mut self, mask: u16) {
         self.emulator.set_keys_mask(mask);
+    }
+
+    /// This function updates the emulator quirk settings.
+    /// Arguments:
+    /// - increment_i_on_store: Whether FX55/FX65 increment I.
+    /// - reset_vf_on_logic: Whether logic ops reset VF.
+    /// - wrap_draw: Whether sprites wrap at screen edges.
+    /// - shift_uses_vx: Whether shifts use VX instead of VY.
+    /// Returns: none.
+    #[wasm_bindgen(js_name = "setQuirks")]
+    pub fn set_quirks(
+        &mut self,
+        increment_i_on_store: bool,
+        reset_vf_on_logic: bool,
+        wrap_draw: bool,
+        shift_uses_vx: bool,
+    ) {
+        self.emulator.set_quirks(Chip8Quirks {
+            increment_i_on_store,
+            reset_vf_on_logic,
+            wrap_draw,
+            shift_uses_vx,
+        });
     }
 
     /// This function advances the emulator by a number of CPU cycles.

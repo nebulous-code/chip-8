@@ -197,6 +197,18 @@ impl Chip8Sys {
         }
     }
 
+    /// This function updates the quirk configuration for the Chip-8 instance.
+    /// Arguments:
+    /// - quirks: The new quirk configuration to apply.
+    /// Returns: The updated Chip-8 system.
+    pub fn set_quirks(&mut self, quirks: Chip8Quirks) -> &mut Self {
+        self.is_inc_index = quirks.increment_i_on_store;
+        self.is_register_f_reset = quirks.reset_vf_on_logic;
+        self.is_wrap_draw = quirks.wrap_draw;
+        self.is_mod_vx_in_place = quirks.shift_uses_vx;
+        self
+    }
+
     /// This function resets the Chip-8 system while preserving its quirks.
     /// Arguments: none.
     /// Returns: The updated Chip-8 system.
