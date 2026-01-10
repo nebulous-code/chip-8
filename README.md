@@ -1,4 +1,13 @@
-# What is a CHIP-8
+# CHIP-8 in Rust
+
+This is a rust library to emulate a CHIP-8.
+
+## Demo 
+
+See the demo here:
+https://nebulous-code.github.io/chip8-vue/
+
+## What is a CHIP-8
 
 CHIP-8 is a interpreted programming language for the COSMAC VIP. This means
 that it was a program running on a computer that allowed users to more easily
