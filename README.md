@@ -33,7 +33,9 @@ This workspace ships two crates:
 
 ## Install (crates.io)
 
-Publishing to crates.io is in progress...
+Crates available through crates.io
+[chip8sys](https://crates.io/crates/chip8sys)
+[chip8wasm](https://crates.io/crates/chip8wasm)
 
 ```bash
 cargo add chip8sys
