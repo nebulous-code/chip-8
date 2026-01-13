@@ -11,12 +11,12 @@ https://nebulous-code.github.io/chip8-vue/
 
 ### Vue Online Demo
 
-![vue_web_wrapper](.../assets/screen_shots/CHIP-8_vue_wrapper.png)
+![vue_web_wrapper](./assets/screen_shots/CHIP-8_vue_wrapper.png)
 Web app wrapper for the CHIP-8 library. 
 
 ### egui eframe Desktop App
 
-![egui_eframe_wrapper](.../assets/screen_shots/CHIP-8_eframe_ibm_logo.png)
+![egui_eframe_wrapper](./assets/screen_shots/CHIP-8_eframe_ibm_logo.png)
 
 ## About CHIP-8
 
@@ -110,6 +110,10 @@ https://github.com/nebulous-code/chip-8
   - Run CHIP-8
 
 Open Issues can be found in [TODO.md](./TODO.md)
+
+### Thank you!
+
+Special thanks to [Timendus' CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite).
 
 ## About Me
 
