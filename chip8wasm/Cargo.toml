@@ -2,6 +2,14 @@
 name = "chip8wasm"
 version = "0.1.0"
 edition = "2024"
+license = "MIT OR Apache-2.0"
+license-file = "LICENSE"
+description = "A wasm wrapper for a CHIP-8 emulator library"
+homepage = "https://github.com/nebulous-code/chip-8"
+repository = "https://github.com/nebulous-code/chip-8"
+readme = "README.md"
+keywords = ["CHIP-8","emulator","wasm"]
+categories = ["emulators","wasm"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]

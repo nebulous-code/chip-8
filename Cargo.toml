@@ -3,8 +3,6 @@ resolver = "3"
 members = [
     "chip8sys",
     "chip8wasm",
-#   "chip8gui",
-#    "chip8eframe"
 ]
 
 [workspace.dependencies]
