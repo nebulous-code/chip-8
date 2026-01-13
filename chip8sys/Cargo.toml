@@ -11,7 +11,7 @@ keywords = ["CHIP-8", "emulator", "retro_computer"]
 categories = ["emulators"]
 
 [dependencies]
-serde = "*"
+serde = "1.0.228"
 
 # random
 getrandom = { version = "0.3.3", default-features = false, features = ["wasm_js"] }
