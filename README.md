@@ -17,6 +17,7 @@ Web app wrapper for the CHIP-8 library.
 ### egui eframe Desktop App
 
 ![egui_eframe_wrapper](./assets/screen_shots/CHIP-8_eframe_ibm_logo.png)
+A desktop application to demo the CHIP-8 library.
 
 ## About CHIP-8
 
