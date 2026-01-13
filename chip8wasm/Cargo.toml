@@ -14,5 +14,5 @@ categories = ["emulators","wasm"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-chip8sys = { path = "../chip8sys" }
+chip8sys = "0.1.0"
 wasm-bindgen = "0.2.92"
