@@ -12,7 +12,7 @@ https://nebulous-code.github.io/chip8-vue/
 ### Vue Online Demo
 
 ![vue_web_wrapper](./assets/screen_shots/CHIP-8_vue_wrapper.png)
-Web app wrapper for the CHIP-8 library. 
+Web app wrapper for the CHIP-8 library. (Thanks [Timendus](https://github.com/Timendus/chip8-test-suite))
 
 ### egui eframe Desktop App
 
